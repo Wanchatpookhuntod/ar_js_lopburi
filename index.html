@@ -6,7 +6,22 @@
     <script src="https://rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-gps-component.min.js"></script>
 </head>
 <body style="margin: 0; overflow: hidden;">
-    <div>hello</div>
+    <script>
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                alert("GPS ทำงาน! ลองหมุนมือถือหาตำแหน่งของโมเดล");
+            },
+            function(error) {
+                alert("⛔ มือถือไม่ได้เปิด GPS! กรุณาเปิด GPS และโหลดหน้าเว็บใหม่");
+            }
+        );
+    } else {
+        alert("⛔ อุปกรณ์นี้ไม่รองรับ GPS!");
+    }
+        
+</script>
+    
     <a-scene embedded arjs gps-camera="minDistance: 0.5; maxDistance: 100;">
         <!-- เพิ่มโมเดล 3D ที่ตำแหน่ง GPS -->
         <a-box gps-entity-place="latitude: 14.799428047423824; longitude: 100.6228983236227"
