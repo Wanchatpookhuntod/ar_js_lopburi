@@ -5,27 +5,79 @@
     <script src="https://rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-ar.min.js"></script>
     <script src="https://rawgit.com/jeromeetienne/AR.js/1.7.2/aframe/build/aframe-gps-component.min.js"></script>
 </head>
-<body style="margin: 0; overflow: hidden;">
-    <script>
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                alert("GPS ทำงาน! ลองหมุนมือถือหาตำแหน่งของโมเดล");
-            },
-            function(error) {
-                alert("⛔ มือถือไม่ได้เปิด GPS! กรุณาเปิด GPS และโหลดหน้าเว็บใหม่");
-            }
-        );
-    } else {
-        alert("⛔ อุปกรณ์นี้ไม่รองรับ GPS!");
-    }
-        
-</script>
-    
-    <a-scene embedded arjs gps-camera="minDistance: 0.5; maxDistance: 100;">
-        <!-- เพิ่มโมเดล 3D ที่ตำแหน่ง GPS -->
-        <a-box gps-entity-place="latitude: 14.799428047423824; longitude: 100.6228983236227"
+<body style="margin: 0; overflow: hidden; text-align: center;">
+
+    <!-- ข้อความแนะนำให้หันกล้อง -->
+    <div id="directionText" style="
+        position: absolute; 
+        top: 20px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background: rgba(0, 0, 0, 0.7);
+        color: white; 
+        padding: 10px; 
+        border-radius: 5px;">
+        กำลังโหลด...
+    </div>
+
+    <a-scene embedded arjs gps-camera="minDistance: 0; maxDistance: 1000;">
+        <!-- โมเดล 3D ที่พิกัด GPS -->
+        <a-box id="targetModel"
+               gps-entity-place="latitude: 14.799428047423824; longitude: 100.6228983236227"
                material="color: red; opacity: 0.7" scale="5 5 5"></a-box>
     </a-scene>
+
+    <script>
+        let userLat, userLon;  // เก็บค่าพิกัดปัจจุบันของผู้ใช้
+        const targetLat = 14.799428047423824;  // พิกัดของโมเดล
+        const targetLon = 100.6228983236227;
+        const directionText = document.getElementById("directionText");
+
+        // ฟังก์ชันคำนวณทิศทาง
+        function calculateBearing(lat1, lon1, lat2, lon2) {
+            let dLon = (lon2 - lon1) * Math.PI / 180;
+            let y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+            let x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                    Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+            let brng = Math.atan2(y, x) * 180 / Math.PI;
+            return (brng + 360) % 360;  // แปลงเป็นองศา (0-360)
+        }
+
+        // ฟังก์ชันตรวจจับ GPS ของผู้ใช้
+        function updateUserLocation(position) {
+            userLat = position.coords.latitude;
+            userLon = position.coords.longitude;
+            updateDirection();
+        }
+
+        // ฟังก์ชันบอกให้หันไปทางไหน
+        function updateDirection() {
+            if (!userLat || !userLon) return;
+            
+            const bearing = calculateBearing(userLat, userLon, targetLat, targetLon);
+            const compassDirection = getCompassDirection(bearing);
+
+            // แสดงข้อความแนะนำให้หันกล้อง
+            directionText.innerText = `หันกล้องไปทาง ${compassDirection}`;
+        }
+
+        // ฟังก์ชันแปลงองศาเป็นทิศทาง (N, NE, E, SE, S, SW, W, NW)
+        function getCompassDirection(degrees) {
+            const directions = ["เหนือ", "ตะวันออกเฉียงเหนือ", "ตะวันออก", "ตะวันออกเฉียงใต้",
+                                "ใต้", "ตะวันตกเฉียงใต้", "ตะวันตก", "ตะวันตกเฉียงเหนือ"];
+            return directions[Math.round(degrees / 45) % 8];
+        }
+
+        // ตรวจจับการเปลี่ยนแปลงของตำแหน่ง GPS
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(updateUserLocation, 
+                error => directionText.innerText = "⛔ เปิด GPS และโหลดใหม่!",
+                { enableHighAccuracy: true }
+            );
+        } else {
+            directionText.innerText = "⛔ อุปกรณ์นี้ไม่รองรับ GPS!";
+        }
+    </script>
+
 </body>
 </html>
