@@ -7,5 +7,10 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
     <div>hello</div>
+    <a-scene embedded arjs gps-camera="minDistance: 0.5; maxDistance: 100;">
+        <!-- เพิ่มโมเดล 3D ที่ตำแหน่ง GPS -->
+        <a-box gps-entity-place="latitude: 14.799428047423824; longitude: 100.6228983236227"
+               material="color: red; opacity: 0.7" scale="5 5 5"></a-box>
+    </a-scene>
 </body>
 </html>
