@@ -7,7 +7,7 @@
 </head>
 <body style="margin: 0; overflow: hidden; text-align: center;">
 
-    <!-- แจ้งสถานะ GPS และระยะห่าง -->
+    <!-- แจ้งสถานะ GPS -->
     <div id="gpsStatus" style="
         position: absolute; 
         top: 20px; 
@@ -21,10 +21,10 @@
     </div>
 
     <a-scene embedded arjs gps-camera="minDistance: 0; maxDistance: 10000;">
-        <!-- โมเดล 3D -->
-        <a-box id="model"
-               gps-entity-place="latitude: 14.799428047423824; longitude: 100.6228983236227"
-               material="color: red; opacity: 1" scale="1 1 1"></a-box>
+        <!-- ใช้รูปภาพแทนโมเดล -->
+        <a-image gps-entity-place="latitude: 14.799428047423824; longitude: 100.6228983236227"
+                 src="https://cdn-icons-png.flaticon.com/512/1483/1483336.png"
+                 scale="10 10 10"></a-image>
     </a-scene>
 
     <script>
@@ -33,7 +33,7 @@
         const modelLon = 100.6228983236227;
         const gpsStatus = document.getElementById("gpsStatus");
 
-        // ฟังก์ชันตรวจสอบ GPS
+        // ตรวจสอบ GPS
         function checkGPS() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.watchPosition(
@@ -52,7 +52,7 @@
             }
         }
 
-        // ฟังก์ชันคำนวณระยะทาง (Haversine Formula)
+        // คำนวณระยะห่าง
         function calculateDistance(lat1, lon1, lat2, lon2) {
             function deg2rad(deg) {
                 return deg * (Math.PI / 180);
@@ -67,22 +67,20 @@
             return R * c; // ระยะเป็นเมตร
         }
 
-        // อัปเดตระยะห่างระหว่างผู้ใช้กับโมเดล
+        // อัปเดตระยะห่าง
         function updateDistance() {
             if (!userLat || !userLon) return;
             
             const distance = calculateDistance(userLat, userLon, modelLat, modelLon);
-            gpsStatus.innerText = `📍 ระยะห่างจากโมเดล: ${Math.round(distance)} เมตร`;
+            gpsStatus.innerText = `📍 ระยะห่างจากไอคอน: ${Math.round(distance)} เมตร`;
 
-            // แจ้งเตือนเมื่อเข้าใกล้
             if (distance < 5) {
-                gpsStatus.innerText += "\n🎉 คุณอยู่ใกล้โมเดลแล้ว!";
+                gpsStatus.innerText += "\n🎉 คุณอยู่ใกล้ไอคอนแล้ว!";
             } else if (distance > 500) {
-                gpsStatus.innerText += "\n🔎 โมเดลอยู่ไกล - เดินเข้าไปใกล้ขึ้น!";
+                gpsStatus.innerText += "\n🔎 ไอคอนอยู่ไกล - เดินเข้าไปใกล้ขึ้น!";
             }
         }
 
-        // เรียกใช้ฟังก์ชันตรวจสอบ GPS
         checkGPS();
     </script>
 
